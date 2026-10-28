@@ -3,6 +3,8 @@ credentials.json
 backend/credentials.json
 *config.json
 !backend/config.example.json
+*reddit_key.json
+!*reddit_key.example.json
 *.key
 .env
 .env.*
