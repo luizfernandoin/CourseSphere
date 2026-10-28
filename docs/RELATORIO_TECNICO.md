@@ -129,6 +129,8 @@ A infraestrutura foi enriquecida com os quatro pilares de confiabilidade do Goog
    - Documentado integralmente em `docs/SRE_OBSERVABILIDADE.md`.
    - SLO de Disponibilidade: 99.5% de requisições válidas com status < 500 no período móvel de 30 dias.
    - SLO de Latência: 95% das requisições processadas em menos de 250ms.
+5. **Dashboard de Observabilidade:**
+   - Template JSON completo exportado em `infra/grafana/coursesphere-dashboard.json`, cobrindo métricas de SLO, latência P95, vazão e balanceamento entre réplicas.
 
 ---
 
@@ -136,12 +138,27 @@ A infraestrutura foi enriquecida com os quatro pilares de confiabilidade do Goog
 
 Para garantir a operação contínua sem pontos únicos de falha:
 - **Balanceador de Carga Nginx:** Instanciado na porta 5000 e 8080 distribuindo tráfego para `backend-1:5000` e `backend-2:5000`.
-- **Algoritmo Round-Robin:** Alternância sequencial uniforme comprovada por bateria automatizada de testes.
+- **Algoritmo Round-Robin:** Alternância sequencial uniforme comprovada por bateria automatizada de testes (50% / 50% de distribuição).
 - **Failover Transparente:** Diretiva `proxy_next_upstream` encaminha o tráfego instantaneamente para a réplica saudável caso uma instância sofra instabilidade.
 
 ---
 
-## 6. Procedimentos de Reprodução e Auditoria
+## 6. Diferenciais Avançados de Confiabilidade e Postura de Segurança
+
+Além do atendimento aos requisitos básicos do edital, foram incorporados os diferenciais de nível avançado:
+1. **Threat Modeling Estruturado (STRIDE & DFD):**
+   - Análise metodológica documentada em `docs/threat-model.md` com diagramas de fluxo de dados Nível 0 e Nível 1.
+   - Mapeamento das 6 categorias STRIDE contra as fronteiras de confiança da aplicação e cálculo do risco residual.
+2. **Pipeline Automatizado de CI/CD (GitHub Actions):**
+   - Configurado em `.github/workflows/security.yml`.
+   - Pipeline contínua executando SAST (Bandit), verificação de dependências (pip-audit) e a suíte completa de testes automatizados com Redis antes de qualquer merge.
+3. **Template de Provisionamento Grafana:**
+   - Arquivo `infra/grafana/coursesphere-dashboard.json` pronto para importação direta no Grafana.
+4. **Ambiente Isolado e Sem Dependência de Terceiros:**
+   - 100% conteinerizado localmente com emuladores de Firebase e Redis, garantindo proteção contra vazamento de dados em serviços de nuvem.
+
+---
+
+## 7. Procedimentos de Reprodução e Auditoria
 
 Consulte o arquivo `README.md` na raiz do projeto para o passo a passo completo de inicialização dos contêiners, execução das Provas de Conceito e bateria de testes automatizados.
-

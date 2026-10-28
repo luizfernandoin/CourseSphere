@@ -152,6 +152,9 @@ python scripts/pocs/run_all_pocs.py
 
 ```text
 CourseSphere/
+├── .github/
+│   └── workflows/
+│       └── security.yml      # Pipeline CI/CD: SAST, SCA e testes automatizados
 ├── backend/
 │   ├── blueprints/           # Rotas modulares (ex: courses)
 │   ├── middleware/           # Logging estruturado, headers OWASP
@@ -164,13 +167,15 @@ CourseSphere/
 │   ├── evidencias/           # Logs e relatorios de testes ofensivos e defensivos
 │   ├── ARQUITETURA_ALTA_DISPONIBILIDADE.md # Especificacao detalhada de HA
 │   ├── RELATORIO_TECNICO.md  # Relatorio consolidado de auditoria e remediacao
-│   └── SRE_OBSERVABILIDADE.md # Guia de governanca de SLIs/SLOs e monitoramento
+│   ├── SRE_OBSERVABILIDADE.md # Guia de governanca de SLIs/SLOs e monitoramento
+│   └── threat-model.md       # Modelagem de ameacas STRIDE e diagramas DFD
 ├── frontend/
 │   ├── src/                  # SPA React
 │   ├── Dockerfile            # Multi-stage build com Nginx
 │   └── nginx.conf            # Configuracao segura de host estatico
 ├── infra/
 │   ├── firebase-emulator/    # Regras do Realtime DB e configuracao de emulador
+│   ├── grafana/              # Provisionamento de dashboard de observabilidade
 │   └── nginx/                # Configuracao do Load Balancer e Upstream Pool
 ├── scripts/
 │   ├── pocs/                 # Scripts executaveis de Pentest e Re-teste
@@ -178,3 +183,21 @@ CourseSphere/
 ├── docker-compose.yml        # Orquestracao completa do ambiente
 └── README.md                 # Documentacao principal do sistema
 ```
+
+---
+
+## 8. Diferenciais Avançados Implementados
+
+Como demonstrativo de maturidade em AppSec e SRE, o projeto conta com os seguintes diferenciais arquiteturais:
+
+1. **Threat Modeling Estruturado (STRIDE & DFD):**
+   - Documentado integralmente em [`docs/threat-model.md`](docs/threat-model.md).
+   - Diagramas de Fluxo de Dados Nível 0 (Contexto) e Nível 1 (Decomposição de Processos) em Mermaid.
+   - Mapeamento explícito de cada uma das categorias STRIDE (*Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege*) e cálculo do risco residual.
+2. **Pipeline de Integração Contínua (CI/CD) com GitHub Actions:**
+   - Configurado em [`.github/workflows/security.yml`](.github/workflows/security.yml).
+   - Execução automatizada de SAST (Bandit), auditoria de dependências (pip-audit) e suíte de testes de regressão/hardening via Pytest com serviço Redis integrado.
+3. **Provisionamento de Dashboard Grafana:**
+   - Modelo exportável e pronto para importação em [`infra/grafana/coursesphere-dashboard.json`](infra/grafana/coursesphere-dashboard.json), consolidando SLI de Disponibilidade, P95 de Latência, Throughput particionado por status HTTP, tráfego por réplica e saúde de dependências.
+4. **Isolamento Total do Ambiente de Testes:**
+   - Execução 100% local e segura com Firebase Emulator Suite e Redis local, impedindo riscos de exposição em serviços externos de nuvem.
