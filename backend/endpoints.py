@@ -7,6 +7,7 @@ try:
     from backend.firebase import Firebase
     from backend.main import hashFunction
     from backend.blueprints.courses import courses_bp
+    from backend.blueprints.monitoring import monitoring_bp, track_metrics
     from backend.security.auth import require_auth, get_current_uid
     from backend.security.rate_limit import init_rate_limiter
     from backend.security.validation import (
@@ -15,12 +16,14 @@ try:
         validate_chat_messages_payload,
     )
     from backend.middleware.security_headers import register_security_headers
+    from backend.middleware.logging import register_structured_logging
     from backend.utils.responses import success_response, error_response
 except ImportError:
     from query_manager import QueryManager
     from firebase import Firebase
     from main import hashFunction
     from blueprints.courses import courses_bp
+    from blueprints.monitoring import monitoring_bp, track_metrics
     from security.auth import require_auth, get_current_uid
     from security.rate_limit import init_rate_limiter
     from security.validation import (
@@ -29,6 +32,7 @@ except ImportError:
         validate_chat_messages_payload,
     )
     from middleware.security_headers import register_security_headers
+    from middleware.logging import register_structured_logging
     from utils.responses import success_response, error_response
 
 app = Flask(__name__)
@@ -36,8 +40,14 @@ app = Flask(__name__)
 # Enforce maximum body payload size (1MB) to protect against memory exhaustion / payload bombs
 app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024
 
+# Register structured JSON logging with correlation IDs
+register_structured_logging(app)
+
 # Register security headers middleware
 register_security_headers(app)
+
+# Register Prometheus request metrics tracking
+track_metrics(app)
 
 # Initialize distributed rate limiter
 limiter = init_rate_limiter(app)
@@ -51,6 +61,7 @@ CORS(app, origins=[origin.strip() for origin in allowed_origins if origin.strip(
 
 # Register blueprints
 app.register_blueprint(courses_bp)
+app.register_blueprint(monitoring_bp)
 
 
 # ============================================================================
