@@ -80,4 +80,4 @@ def run_test():
 
 if __name__ == "__main__":
     is_vuln = run_test()
-    sys.exit(0 if is_vuln else 1)
+    sys.exit(1 if is_vuln else 0)
