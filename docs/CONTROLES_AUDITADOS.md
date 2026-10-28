@@ -1,6 +1,6 @@
 # Controles de Segurança Auditados sem Falha (Controles Efetivos)
 **Projeto:** CourseSphere — Desafio Técnico AppSec & SRE  
-**Data:** 27/10/2026  
+**Data:** 28/10/2026  
 **Status:** Validados e Aprovados
 
 ---
@@ -50,9 +50,37 @@ Isso assegura à banca examinadora que:
 
 ---
 
-### 2.5 Isolamento de Containers e Execução Non-Root (Fase 1)
+### 2.5 Isolamento de Containers e Execução Non-Root
 - **Controle:** Princípio do Menor Privilégio no runtime Docker.
 - **Resultado do Teste:** **APROVADO (Efetivo)**.
 - **Evidência:**
   Tanto a imagem `coursesphere-backend` (`appuser:10001`) quanto a imagem `coursesphere-frontend` (`nginx:101`) operam estritamente como usuários sem privilégios administrativos (`non-root`), mitigando o risco de *container escape* no host em caso de exploração de vulnerabilidades de aplicação.
 
+---
+
+### 2.6 Rate Limiting Distribuído com Redis (Proteção Anti-Abuso e Brute Force)
+- **Controle:** `Flask-Limiter` integrado ao Redis centralizado para controle de taxa por IP e por UID.
+- **Resultado do Teste:** **APROVADO (Efetivo)**.
+- **Evidência:**
+  Rotas críticas possuem limites estritos configurados (`/users/create`: 10 requisições/minuto; `/users/query`: 20 requisições/minuto; `/hash`: 60 requisições/minuto). Disparos concorrentes acima do limiar retornam `HTTP 429 Too Many Requests` com resposta JSON padronizada, prevenindo exaustão de recursos e ataques de força bruta.
+
+---
+
+### 2.7 Injeção de Cabeçalhos HTTP de Segurança (Defesa em Profundidade)
+- **Controle:** Middleware Flask e diretivas Nginx configuradas com as recomendações do OWASP Secure Headers Project.
+- **Resultado do Teste:** **APROVADO (Efetivo)**.
+- **Evidência:**
+  Todas as respostas HTTP do backend e do frontend incluem:
+  - `X-Content-Type-Options: nosniff` (impede MIME type sniffing)
+  - `X-Frame-Options: DENY` (neutraliza ataques de clickjacking)
+  - `Referrer-Policy: strict-origin-when-cross-origin` (previne vazamento de URLs internas em requisições de terceiros)
+  - `Content-Security-Policy` (restringe fontes de scripts, estilos e conexões)
+  - `Permissions-Policy` (desativa recursos de hardware e APIs invasivas do navegador)
+
+---
+
+### 2.8 Restrição de Tamanho de Payload e Validação Estrita de Input
+- **Controle:** `MAX_CONTENT_LENGTH = 1MB` e validadores de schema defensivos.
+- **Resultado do Teste:** **APROVADO (Efetivo)**.
+- **Evidência:**
+  Requisições com payloads superiores a 1MB são abortadas pelo servidor HTTP com `HTTP 413 Payload Too Large`, mitigando ataques de DoS por consumo excessivo de memória. Schemas de entrada sanitizam dicionários descartando campos desconhecidos (anti-mass assignment) e validam formatos de email e força mínima de senha.
