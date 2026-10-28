@@ -1,8 +1,57 @@
+# Credentials & Secrets
+credentials.json
+backend/credentials.json
 *config.json
+!backend/config.example.json
+*.key
+.env
+.env.*
 
-*.idea*
-*.vscode*
+# Python runtime and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
 
+# Database files
 *.db*
+*.sqlite*
+!docs/**
 
+# OS & Editor artifacts
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+*.iml
+.vscode/
+
+# Node & Frontend build artifacts
+node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test & coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Internal Planning & Challenge reference docs (not part of delivery)
+Desafio Técnico*
+Plano de Execução*
+PLANO_ORGANIZACAO_E_TAREFAS_APPSEC_SRE.md
+stack.md
+
