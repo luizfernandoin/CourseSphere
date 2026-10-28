@@ -13,6 +13,19 @@ services:
     environment:
       - FIREBASE_PROJECT=coursesphere-8bd9a
 
+  redis:
+    image: redis:7-alpine
+    container_name: coursesphere-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - coursesphere-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -22,12 +35,15 @@ services:
       - "5000:5000"
     depends_on:
       - firebase-emulator
+      - redis
     environment:
       - PORT=5000
       - INSTANCE_ID=backend-1
       - OPENAI_OFFLINE_MOCK=true
       - FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
       - FIREBASE_DATABASE_EMULATOR_HOST=firebase-emulator:9000
+      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173
     networks:
       - coursesphere-net
 
@@ -46,4 +62,3 @@ services:
 networks:
   coursesphere-net:
     driver: bridge
-
