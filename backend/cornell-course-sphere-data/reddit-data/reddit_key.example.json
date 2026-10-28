@@ -1,0 +1,6 @@
+{
+  "client_id": "YOUR_REDDIT_CLIENT_ID",
+  "client_secret": "YOUR_REDDIT_CLIENT_SECRET",
+  "user_agent": "CourseSphere/1.0"
+}
+

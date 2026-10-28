@@ -11,7 +11,7 @@
 - **CVSS v3.1 Base Score:** 6.5
 - **CVSS v3.1 Vector:** `CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N`
 - **Componentes Afetados:** `backend/endpoints.py` (linhas 8 e 55-63)
-- **Status de Remediação:** Em Análise / Planejado para Correção na Fase 3 e Fase 4 (Hardening)
+- **Status de Remediação:** Corrigido
 
 ---
 
@@ -86,4 +86,26 @@ Tokens de autenticação transmitidos na URL:
    ```
 3. **Injeção de Cabeçalhos Anti-Vazamento (Referrer-Policy):**
    Configurar `Referrer-Policy: strict-origin-when-cross-origin` (já ativo no Nginx do frontend).
+
+---
+
+## 6. Implementação Efetiva da Correção
+
+1. **Restrição Estrita de Origens Permitidas no CORS:**
+   Em `backend/endpoints.py`, a inicialização do CORS foi configurada via `ALLOWED_ORIGINS`, permitindo unicamente origens conhecidas (`http://localhost:3000`, `http://127.0.0.1:3000`, `http://localhost:5173`) com `supports_credentials=True`.
+2. **Eliminação de Token na URL Query String:**
+   A rota `GET /users/info` foi protegida com o decorator `@require_auth`, extraindo o token estritamente via header `Authorization: Bearer <token>`. O suporte a `?id_token=` na query string foi completamente eliminado.
+
+---
+
+## 7. Validação Pós-Correção (Re-teste)
+
+- **Script de Re-teste:** `scripts/pocs/test_vuln06_cors_and_token.py`
+  - Resultado: **MITIGADA COM SUCESSO**
+  - Preflight com `Origin: https://evil-attacker.site`: `Access-Control-Allow-Origin: None` (bloqueado).
+  - Chamada `GET /users/info?id_token=...`: Retorna `HTTP 401 {"error": "Authorization header is required"}`.
+- **Suite de Regressão Automatizada (Pytest):**
+  - `tests/test_error_handling_and_cors.py::test_token_in_query_string_rejected` -> **PASSED**
+  - `tests/test_error_handling_and_cors.py::test_cors_policy_rejects_untrusted_origins` -> **PASSED**
+
 

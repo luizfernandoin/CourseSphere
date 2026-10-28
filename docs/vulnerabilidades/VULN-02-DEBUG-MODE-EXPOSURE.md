@@ -11,7 +11,7 @@
 - **CVSS v3.1 Base Score:** 8.5
 - **CVSS v3.1 Vector:** `CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:L`
 - **Componentes Afetados:** `backend/endpoints.py` (linha 108)
-- **Status de Remediação:** Em Análise / Planejado para Correção na Fase 3
+- **Status de Remediação:** Corrigido
 
 ---
 
@@ -79,4 +79,27 @@ Uso de configuração de ambiente de desenvolvimento em código destinado à exe
      "error": "Erro interno no servidor. Por favor, tente novamente mais tarde."
    }
    ```
+
+---
+
+## 6. Implementação Efetiva da Correção
+
+1. **Remoção de `debug=True`:**
+   Em `backend/endpoints.py`, o modo de depuração foi condicionado à variável de ambiente `FLASK_DEBUG`, com valor padrão desativado (`debug=False`).
+2. **Manipuladores Centrais de Erro:**
+   Implementados error handlers para códigos HTTP `400`, `401`, `403`, `404`, `405`, `500` e para exceções genéricas (`Exception`), eliminando qualquer vazamento de stack traces ou strings de exceção brutas da SDK do Firebase.
+3. **Execução Estrita via Servidor WSGI Gunicorn:**
+   O container de produção executa via Gunicorn com `workers=2` e `threads=2`, isolando processos e tratando sinais de terminação de forma limpa.
+
+---
+
+## 7. Validação Pós-Correção (Re-teste)
+
+- **Script de Re-teste:** `scripts/pocs/test_vuln02_debug_mode.py`
+  - Resultado: **MITIGADA COM SUCESSO**
+  - Respostas para rotas inexistentes ou malformadas retornam payloads JSON limpos (`HTTP 404`, `HTTP 400`, `HTTP 401`).
+  - Cabeçalho `Server` reflete `gunicorn`, e nenhuma string de traceback é enviada ao cliente.
+- **Suite de Regressão Automatizada (Pytest):**
+  - `tests/test_error_handling_and_cors.py::test_debug_mode_disabled` -> **PASSED**
+  - `tests/test_error_handling_and_cors.py::test_error_handlers_prevent_stack_trace_leakage` -> **PASSED**
 

@@ -1,7 +1,19 @@
 {
   "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null"
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "info": {
+          ".validate": "newData.hasChildren(['majors', 'college'])"
+        },
+        "chats": {
+          "$chat_id": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        }
+      }
+    }
   }
 }
-

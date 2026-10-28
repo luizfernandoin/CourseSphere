@@ -11,7 +11,7 @@
 - **CVSS v3.1 Base Score:** 7.5
 - **CVSS v3.1 Vector:** `CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N`
 - **Componentes Afetados:** `backend/blueprints/courses.py` (linhas 30, 47, 64, 80, 96, 112)
-- **Status de Remediação:** Em Análise / Planejado para Correção na Fase 3
+- **Status de Remediação:** Corrigido
 
 ---
 
@@ -112,4 +112,30 @@ Concatenação direta de entrada não confiável fornecida pelo usuário na mont
    Registrar formalmente o blueprint corrigido com `app.register_blueprint(courses_bp)`.
 4. **Testes Automatizados:**
    Adicionar teste no Pytest enviando payloads de injeção e comprovando que o banco trata o parâmetro estritamente como dado literal e não como instrução executável.
+
+---
+
+## 6. Implementação Efetiva da Correção
+
+1. **Parametrização em `backend/db.py`:**
+   A função `execute_query(query: str, params=())` foi refatorada para aceitar parâmetros seguros em tupla (`cursor.execute(query, params)`), fechando conexões com segurança e utilizando `conn.row_factory = sqlite3.Row`.
+2. **Substituição de Concatenações em `backend/blueprints/courses.py`:**
+   Todas as rotas (`/courses/<int:course_id>`, `/courses/description/<int:course_id>`, `/courses/bysection/<int:section_id>`, `/courses/semester/<string:semester>`, `/courses/department/<string:department>`, `/courses/instructor/<string:instructor>`) utilizam agora placeholders `?`.
+3. **Registro Oficial do Blueprint:**
+   Em `backend/endpoints.py`, `app.register_blueprint(courses_bp)` foi ativado com sucesso.
+
+---
+
+## 7. Validação Pós-Correção (Re-teste)
+
+- **Script de Re-teste:** `scripts/pocs/test_vuln03_sqli.py`
+  - Resultado: **MITIGADA COM SUCESSO**
+  - Consulta ao catálogo geral `/courses`: `HTTP 200` com 10 cursos legítimos.
+  - Teste de injeção com `' OR '1'='1`: Retornou `HTTP 404 {"error": "No courses found for this semester"}`. O SQLite buscou literalmente pela string do semestre, neutralizando completamente o ataque.
+- **Suite de Regressão Automatizada (Pytest):**
+  - `tests/test_sqli_regression.py::test_courses_endpoint_is_registered` -> **PASSED**
+  - `tests/test_sqli_regression.py::test_sqli_boolean_bypass_is_mitigated` -> **PASSED**
+  - `tests/test_sqli_regression.py::test_sqli_union_injection_is_mitigated` -> **PASSED**
+  - `tests/test_sqli_regression.py::test_legitimate_course_retrieval_by_id` -> **PASSED**
+
 

@@ -36,7 +36,8 @@ RUN mkdir -p /app/cournell-course-sphere-data /app/cornell-course-sphere-data &&
     conn.execute('CREATE TABLE IF NOT EXISTS courses (id INTEGER PRIMARY KEY, name TEXT, section_id INTEGER, semester TEXT, department TEXT, instructor TEXT);'); \
     conn.execute('CREATE TABLE IF NOT EXISTS course_descriptions (id INTEGER PRIMARY KEY, course_id INTEGER, description TEXT);'); \
     conn.commit(); conn.close()" && \
-    cp /app/cournell-course-sphere-data/roster_reviews.sqlite.db /app/cornell-course-sphere-data/roster_reviews.sqlite.db
+    cp /app/cournell-course-sphere-data/roster_reviews.sqlite.db /app/cornell-course-sphere-data/roster_reviews.sqlite.db && \
+    ln -s /app /app/backend
 
 # Set ownership of the /app directory to the non-root user
 RUN chown -R appuser:appgroup /app
