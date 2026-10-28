@@ -150,6 +150,14 @@ class Firebase:
             raise Exception(f"Error saving messages: {str(e)}")
 
     @staticmethod
+    def get_chat(uid: str, chat_id: str):
+        try:
+            ref = db.reference(f"users/{uid}/chats/{chat_id}")
+            return ref.get()
+        except Exception as e:
+            raise Exception(f"Error retrieving chat session: {str(e)}")
+
+    @staticmethod
     def delete_chat(uid: str, chat_id: str):
         try:
             ref = db.reference(f"users/{uid}/chats/{chat_id}")
