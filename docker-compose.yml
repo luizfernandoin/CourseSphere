@@ -1,0 +1,49 @@
+services:
+  firebase-emulator:
+    build:
+      context: ./infra/firebase-emulator
+      dockerfile: Dockerfile
+    container_name: coursesphere-firebase-emulator
+    ports:
+      - "9099:9099" # Auth Emulator
+      - "9000:9000" # Realtime Database Emulator
+      - "4000:4000" # Emulator Suite Web UI
+    networks:
+      - coursesphere-net
+    environment:
+      - FIREBASE_PROJECT=coursesphere-8bd9a
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: coursesphere-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - firebase-emulator
+    environment:
+      - PORT=5000
+      - INSTANCE_ID=backend-1
+      - OPENAI_OFFLINE_MOCK=true
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
+      - FIREBASE_DATABASE_EMULATOR_HOST=firebase-emulator:9000
+    networks:
+      - coursesphere-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: coursesphere-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - coursesphere-net
+
+networks:
+  coursesphere-net:
+    driver: bridge
+
