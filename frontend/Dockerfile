@@ -1,24 +1,42 @@
-# Use an official Node.js image as the base
-FROM node:16-alpine
+# Multi-Stage Hardened Dockerfile for CourseSphere React Frontend
+# Stage 1: Build the React application with Node.js 20 LTS
+FROM node:20-alpine AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
+# Copy dependency files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
-RUN npm install -g serve
+# Install dependencies cleanly
+RUN npm ci || npm install
 
-# Copy the rest of the app's source code to the working directory
+# Copy source code and configuration
 COPY . .
 
-# Build the app
-RUN npm run build
+# Build production assets using Vite
+RUN npx vite build
 
-# Expose the port that the app will run on
+# Stage 2: Serve compiled static files with Nginx (lightweight, secure, non-root)
+FROM nginx:1.27-alpine AS runtime
+
+# Remove default nginx welcome page
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy compiled static files from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom Nginx configuration with SPA routing and security headers
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Give nginx user ownership of cache and runtime folders
+RUN touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid /var/cache/nginx /usr/share/nginx/html
+
+USER nginx
+
 EXPOSE 3000
 
-# Define the command to run the app
-CMD ["serve", "-s", "dist", "-l", "3000"]
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
