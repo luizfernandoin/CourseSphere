@@ -1,6 +1,6 @@
 # Relatório de Re-teste de Segurança Pós-Remediação
 
-- **Data da Execução:** 2026-10-28 17:18:12
+- **Data da Execução:** 2026-10-28 19:31:14
 - **Ambiente:** Local Isolado (Docker Compose, Firebase Emulator Suite, SQLite Local)
 
 ## 1. Sumário Executivo de Re-teste
@@ -55,8 +55,8 @@
 
 [*] Enviando requisição malformada para /chats/trigger_error/messages sem JSON body...
 [*] Código retornado: 401
-[*] Headers da resposta: {'Server': 'gunicorn', 'Date': 'Wed, 28 Oct 2026 20:18:08 GMT', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Content-Length': '45', 'Access-Control-Allow-Origin': 'http://127.0.0.1:3000', 'Access-Control-Allow-Credentials': 'true', 'Vary': 'Origin'}
-[*] Server Header: gunicorn
+[*] Headers da resposta: {'Server': 'nginx/1.27.5', 'Date': 'Wed, 28 Oct 2026 22:31:10 GMT', 'Content-Type': 'application/json', 'Content-Length': '45', 'Connection': 'keep-alive', 'Access-Control-Allow-Origin': 'http://127.0.0.1:3000', 'Access-Control-Allow-Credentials': 'true', 'Vary': 'Origin', 'X-Content-Type-Options': 'nosniff, nosniff', 'X-Frame-Options': 'DENY, DENY', 'X-XSS-Protection': '0, 0', 'Referrer-Policy': 'strict-origin-when-cross-origin, strict-origin-when-cross-origin', 'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://localhost:* ws://localhost:*; frame-ancestors 'none'; base-uri 'self'; form-action 'self';", 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()', 'X-Request-ID': '0cae5d0f-ef20-48de-89c0-82af6bdebc8a', 'X-Instance-ID': 'backend-1', 'X-Upstream-Server': '172.19.0.5:5000'}
+[*] Server Header: nginx/1.27.5
 
 [*] Testando /users/info com token malformado...
 [*] Código retornado: 401
