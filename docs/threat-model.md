@@ -130,3 +130,4 @@ quadrantChart
 
 - **Risco Primário Eliminado:** As vulnerabilidades exploráveis de execução arbitrária, injeção e violação de dados foram completamente anuladas.
 - **Risco Residual Aceitável:** O tráfego residual depende da higienização contínua de bibliotecas de terceiros (gestão contínua de patches SCA via dependabot/auditorias periódicas).
+
