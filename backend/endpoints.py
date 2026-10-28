@@ -8,6 +8,13 @@ try:
     from backend.main import hashFunction
     from backend.blueprints.courses import courses_bp
     from backend.security.auth import require_auth, get_current_uid
+    from backend.security.rate_limit import init_rate_limiter
+    from backend.security.validation import (
+        validate_user_create_input,
+        sanitize_profile_payload,
+        validate_chat_messages_payload,
+    )
+    from backend.middleware.security_headers import register_security_headers
     from backend.utils.responses import success_response, error_response
 except ImportError:
     from query_manager import QueryManager
@@ -15,9 +22,25 @@ except ImportError:
     from main import hashFunction
     from blueprints.courses import courses_bp
     from security.auth import require_auth, get_current_uid
+    from security.rate_limit import init_rate_limiter
+    from security.validation import (
+        validate_user_create_input,
+        sanitize_profile_payload,
+        validate_chat_messages_payload,
+    )
+    from middleware.security_headers import register_security_headers
     from utils.responses import success_response, error_response
 
 app = Flask(__name__)
+
+# Enforce maximum body payload size (1MB) to protect against memory exhaustion / payload bombs
+app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024
+
+# Register security headers middleware
+register_security_headers(app)
+
+# Initialize distributed rate limiter
+limiter = init_rate_limiter(app)
 
 # Configure restricted CORS policy
 allowed_origins = os.environ.get(
@@ -59,6 +82,11 @@ def handle_method_not_allowed(e):
     return error_response("Method not allowed", 405)
 
 
+@app.errorhandler(413)
+def handle_payload_too_large(e):
+    return error_response("Payload exceeds maximum permitted size of 1MB", 413)
+
+
 @app.errorhandler(500)
 def handle_internal_error(e):
     return error_response("Internal server error", 500)
@@ -75,14 +103,16 @@ def handle_unhandled_exception(e):
 # ============================================================================
 
 @app.route("/users/create", methods=["POST"])
+@limiter.limit("10 per minute")
 def create_user():
     data = request.get_json(silent=True) or {}
-    email = data.get("email")
+    is_valid, err_msg = validate_user_create_input(data)
+    if not is_valid:
+        return error_response(err_msg, 400)
+
+    email = data.get("email").strip()
     password = data.get("password")
-    if not email:
-        return error_response("Email is required", 400)
-    if not password:
-        return error_response("Password is required", 400)
+
     try:
         result = Firebase.create_user(email, password)
         return success_response(result, 201)
@@ -95,16 +125,10 @@ def create_user():
 def set_user_info():
     user_id = get_current_uid()
     data = request.get_json(silent=True) or {}
-    user_info = {
-        "majors": data.get("majors"),
-        "minors": data.get("minors"),
-        "courses": data.get("courses"),
-        "college": data.get("college"),
-        "year": data.get("year"),
-        "about": data.get("about")
-    }
+    sanitized_info = sanitize_profile_payload(data)
+
     try:
-        Firebase.set_user_info(user_id, user_info)
+        Firebase.set_user_info(user_id, sanitized_info)
         return success_response({"message": "User info set successfully", "uid": user_id}, 200)
     except Exception:
         return error_response("Failed to update user profile", 500)
@@ -127,15 +151,19 @@ def get_user_info():
 
 @app.route("/users/query", methods=["POST"])
 @require_auth
+@limiter.limit("20 per minute")
 def get_user_query():
     data = request.get_json(silent=True) or {}
     query = data.get("query")
-    if not query:
-        return error_response("Query field is required", 400)
+    if not query or not isinstance(query, str) or len(query.strip()) == 0:
+        return error_response("Query field is required and must be non-empty", 400)
+    if len(query) > 2000:
+        return error_response("Query exceeds maximum allowed length of 2000 characters", 400)
+
     user_id = get_current_uid()
     try:
         user_info = Firebase.get_user_info(user_id)
-        response_data = QueryManager(query, user_info).response
+        response_data = QueryManager(query.strip(), user_info).response
         return success_response(response_data, 200)
     except Exception:
         return error_response("Failed to generate response for query", 500)
@@ -143,6 +171,7 @@ def get_user_query():
 
 @app.route("/hash", methods=["POST"])
 @require_auth
+@limiter.limit("60 per minute")
 def generate_message_id():
     data = request.get_json(silent=True)
     if not data:
@@ -164,8 +193,11 @@ def save_chat_messages(chat_id):
     user_id = get_current_uid()
     data = request.get_json(silent=True) or {}
     messages = data.get("messages")
-    if not isinstance(messages, list):
-        return error_response("Invalid payload. 'messages' array is required", 400)
+
+    is_valid, err_msg = validate_chat_messages_payload(messages)
+    if not is_valid:
+        return error_response(err_msg, 400)
+
     try:
         Firebase.save_chat(user_id, chat_id, messages)
         return success_response({"message": "Messages saved successfully"}, 200)
