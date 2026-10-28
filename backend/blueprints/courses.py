@@ -1,6 +1,11 @@
 from flask import Blueprint
-from backend.db import execute_query
-from backend.utils.responses import error_response, success_response
+
+try:
+    from backend.db import execute_query
+    from backend.utils.responses import error_response, success_response
+except ImportError:
+    from db import execute_query
+    from utils.responses import error_response, success_response
 
 courses_bp = Blueprint("courses", __name__)
 

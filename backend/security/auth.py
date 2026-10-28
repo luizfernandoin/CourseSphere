@@ -1,6 +1,10 @@
 import functools
 from flask import request, jsonify, g
-from backend.firebase import Firebase
+
+try:
+    from backend.firebase import Firebase
+except ImportError:
+    from firebase import Firebase
 
 
 def require_auth(f):

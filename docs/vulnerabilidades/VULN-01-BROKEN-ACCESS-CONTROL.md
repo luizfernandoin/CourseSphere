@@ -11,7 +11,7 @@
 - **CVSS v3.1 Base Score:** 7.5
 - **CVSS v3.1 Vector:** `CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N`
 - **Componentes Afetados:** `backend/endpoints.py` (linhas 85-104) e `infra/firebase-emulator/database.rules.json`
-- **Status de Remediação:** Em Análise / Planejado para Correção na Fase 3
+- **Status de Remediação:** Corrigido
 
 ---
 
@@ -97,4 +97,31 @@ A falha decorre de duas causas primárias:
    ```
 4. **Adicionar Teste Automatizado de Regressão em Pytest:**
    Testar formalmente que Alice não consegue deletar nem alterar mensagens de Bob.
+
+---
+
+## 6. Implementação Efetiva da Correção
+
+1. **Decorator `@require_auth` em `backend/security/auth.py`:**
+   Implementado middleware centralizado que valida a presença e integridade do header `Authorization: Bearer <token>`, extrai o UID do usuário e anexa ao contexto da requisição (`g.uid`).
+2. **Validação de Posse de Recurso em `backend/endpoints.py`:**
+   Adicionada verificação prévia através de `Firebase.get_chat(user_id, chat_id)`. Caso o chat não pertença ao usuário autenticado, a requisição é rejeitada com `HTTP 404 Not Found`, impedindo qualquer tentativa de IDOR.
+3. **Hardening no Firebase Realtime Database (`infra/firebase-emulator/database.rules.json`):**
+   Regras restritas configuradas para permitir leitura e escrita exclusivamente onde `auth.uid === $uid`.
+
+---
+
+## 7. Validação Pós-Correção (Re-teste)
+
+- **Script de Re-teste:** `scripts/pocs/test_vuln01_idor.py`
+  - Resultado: **MITIGADA COM SUCESSO**
+  - Tentativa de leitura direta no Realtime Database pelo atacante (Bob): `HTTP 401 Permission denied`.
+  - Tentativa de deleção via API Backend pelo atacante (Bob): `HTTP 404 {"error": "Chat not found"}`.
+- **Suite de Regressão Automatizada (Pytest):**
+  - `tests/test_auth_regression.py::test_unauthenticated_request_rejected` -> **PASSED**
+  - `tests/test_auth_regression.py::test_malformed_auth_header_rejected` -> **PASSED**
+  - `tests/test_auth_regression.py::test_invalid_token_rejected` -> **PASSED**
+  - `tests/test_auth_regression.py::test_user_cannot_delete_nonexistent_or_unowned_chat` -> **PASSED**
+  - `tests/test_auth_regression.py::test_authorized_user_can_save_and_manage_own_chat` -> **PASSED**
+
 

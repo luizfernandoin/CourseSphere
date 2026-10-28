@@ -1,12 +1,21 @@
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from backend.query_manager import QueryManager
-from backend.firebase import Firebase
-from backend.main import hashFunction
-from backend.blueprints.courses import courses_bp
-from backend.security.auth import require_auth, get_current_uid
-from backend.utils.responses import success_response, error_response
+
+try:
+    from backend.query_manager import QueryManager
+    from backend.firebase import Firebase
+    from backend.main import hashFunction
+    from backend.blueprints.courses import courses_bp
+    from backend.security.auth import require_auth, get_current_uid
+    from backend.utils.responses import success_response, error_response
+except ImportError:
+    from query_manager import QueryManager
+    from firebase import Firebase
+    from main import hashFunction
+    from blueprints.courses import courses_bp
+    from security.auth import require_auth, get_current_uid
+    from utils.responses import success_response, error_response
 
 app = Flask(__name__)
 
