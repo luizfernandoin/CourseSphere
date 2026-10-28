@@ -1,164 +1,164 @@
-# Relatório Técnico Consolidado: Avaliação de Segurança e Engenharia de Confiabilidade (AppSec & SRE)
+# Relatório Técnico (AppSec e SRE)
 
-**Plataforma:** CourseSphere — Ambiente de Ensino e Interação  
-**Escopo da Análise:** Avaliação Ofensiva, Remediação de Vulnerabilidades, Hardening de Infraestrutura, Observabilidade SRE e Alta Disponibilidade  
-**Status da Avaliação:** Concluído com Sucesso — Todas as Vulnerabilidades Remediadas e Validadas  
+**Plataforma:** CourseSphere  
+**Alvo:** Backend Flask, Frontend React, Emulador Firebase, Cache Redis e Banco SQLite  
+**Status:** Todas as vulnerabilidades remediadas, validadas e aprovadas em suíte automatizada.
 
 ---
 
 ## 1. Sumário Executivo
 
-A plataforma **CourseSphere** passou por uma revisão completa de Segurança da Aplicação (AppSec) e Engenharia de Confiabilidade de Sites (SRE). O objetivo primordial foi identificar vulnerabilidades críticas decorrentes da arquitetura original, eliminar vetores de exploração ofensiva (OWASP Top 10), estruturar mecanismos robustos de contenção e defesa em profundidade (*defense-in-depth*), e estabelecer garantias de confiabilidade operacional por meio de observabilidade em tempo real e alta disponibilidade.
+A avaliação de segurança da aplicação (**AppSec**) e engenharia de confiabilidade (**SRE**) na plataforma **CourseSphere** identificou seis vulnerabilidades reais de severidades crítica, alta e média. As falhas permitiam manipulação não autorizada de dados de terceiros (IDOR), injeção de comandos SQL (SQLi), vazamento de credenciais no repositório, execução de depurador interativo via modo debug, permissividade em políticas de CORS e exposição de tokens.
 
-### 1.1 Comparativo da Postura de Segurança e Confiabilidade
+Todas as falhas foram reproduzidas localmente por Provas de Conceito (PoCs) e solucionadas na causa raiz. Adicionalmente, foram erguidos controles defensivos (rate limiting distribuído, headers OWASP e validação de esquemas), observabilidade completa com logs estruturados em JSON e métricas Prometheus, e escalabilidade horizontal com proxy Nginx em regime round-robin.
 
-| Dimensão | Estado Inicial (Baseline Vulnerável) | Estado Atual (Remediado & Hardened) |
+### Comparativo da Postura de Segurança e Operação
+
+| Dimensão | Estado Inicial (Vulnerável) | Estado Atual (Remediado) |
 | :--- | :--- | :--- |
-| **Controle de Acesso** | Ausente / Permissivo. Qualquer usuário manipulava dados de terceiros (IDOR/BOLA). | Verificação criptográfica de token Bearer via Firebase Admin SDK com checagem estrita de propriedade em nível de aplicação e banco de dados. |
-| **Tratamento de Exceções** | `debug=True` ativo, expondo tracebacks completos, caminhos de sistema e versões de dependências em erros HTTP 500. | Modo de depuração desabilitado em produção; interceptadores centrais retornando payloads JSON sanitizados e neutros com rastreamento via `X-Request-ID`. |
-| **Integridade de Consultas SQL** | Concatenação direta de strings formatadas (`f-string`) permitindo SQL Injection clássico, tautológico e por UNION. | Consultas 100% parametrizadas com bind variables (`?`), eliminando qualquer possibilidade de injeção de comandos SQL. |
-| **Segredo e Credenciais** | Chaves de serviço Firebase em texto puro commitadas no controle de versão (`reddit_key.json`). | Remoção do histórico, expurgo de arquivos confidenciais, adição ao `.gitignore` e disponibilização de template sanitizado (`reddit_key.example.json`). |
-| **Ciclo de Vida de Dependências** | Bibliotecas sem versionamento com falhas conhecidas de segurança (CVEs). | Dependências rigorosamente pinadas para releases seguras e auditadas via Pip / Bandit / Safety. |
-| **Controle de Origem & Tráfego** | CORS totalmente aberto (`*`), aceitação de credenciais na query string da URL, ausência de rate limiting. | Política restrita de CORS (`ALLOWED_ORIGINS`), tokens aceitos exclusivamente via cabeçalho `Authorization: Bearer`, e rate limiting distribuído com Redis 7. |
-| **Observabilidade & SRE** | Logs em texto não estruturado, ausência de métricas e de health checks. | Logs estruturados em formato JSON com correlação de `X-Request-ID`, sondas `/health` e `/ready`, e exportador Prometheus em `/metrics`. |
-| **Disponibilidade & Resiliência** | Instância única suscetível a Single Point of Failure (SPOF). | Cluster com réplicas redundantes (`backend-1`, `backend-2`) orquestradas por Load Balancer Nginx com balanceamento *Round-Robin* e *failover* automático. |
+| **Controle de Acesso** | Ausente; qualquer usuário alterava ou apagava chats alheios. | Decorador `@require_auth` e validação estrita de dono no Firebase RTDB. |
+| **Integridade SQL** | Concatenação direta de strings permitindo SQLi e dump da base. | 100% das consultas parametrizadas com bind variables (`?`). |
+| **Tratamento de Erros** | `debug=True` expondo caminhos internos e traceback em erro 500. | Debug desativado; respostas JSON neutras com correlation ID (`X-Request-ID`). |
+| **Gestão de Segredos** | Chaves de serviço Firebase commitadas no histórico (`reddit_key.json`). | Segredos expurgados, `.gitignore` reforçado e modelos sanitizados. |
+| **Tráfego & Origem** | CORS irrestrito (`*`) e token aceito na query string da URL. | CORS limitado a origens confiáveis e tokens aceitos apenas no header Bearer. |
+| **Resiliência e Carga** | Instância única (SPOF) sem limites de taxa ou payload. | Cluster com 2 instâncias, Load Balancer Nginx e rate limiting com Redis 7. |
+| **Observabilidade** | Logs em texto sem padrão, sem health checks ou métricas. | Logs JSON, correlation IDs, sondas `/health`, `/ready` e `/metrics`. |
 
 ---
 
-## 2. Matriz de Vulnerabilidades e Remediações
+## 2. Escopo e Metodologia
 
-Todas as vulnerabilidades catalogadas na fase de auditoria e pentest foram reproduzidas através de Provas de Conceito (PoCs) automatizadas, remediadas no código-fonte e submetidas a baterias de testes de regressão automatizados.
+### 2.1 Escopo da Avaliação
+- **Endpoints da API:** `/users/create`, `/users/info`, `/users/query`, `/chats/<chat_id>`, `/chats/<chat_id>/messages`, `/courses`, `/hash`.
+- **Bancos e Serviços:** Firebase Realtime Database (regras de segurança), SQLite e Redis 7.
+- **Ambiente de Testes:** 100% isolado localmente via Docker Compose e Firebase Emulator Suite, sem envio de dados ou credenciais para a nuvem.
 
-### 2.1 Tabela Consolidada de Riscos
-
-| ID | Vulnerabilidade | Classificação OWASP | CVSS v3.1 | Severidade | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **VULN-01** | Broken Access Control / IDOR na Gestão de Chats | API1:2023 - Broken Object Level Authorization | 9.1 | **Crítica** | Remediado |
-| **VULN-02** | Exposição de Informações Sensíveis via Debug Mode | A05:2021 - Security Misconfiguration | 7.5 | **Alta** | Remediado |
-| **VULN-03** | Injeção de SQL (SQLi) no Catálogo de Cursos | A03:2021 - Injection | 9.8 | **Crítica** | Remediado |
-| **VULN-04** | Credenciais Fortes Hardcoded no Repositório | A07:2021 - Identification & Auth Failures | 8.6 | **Alta** | Remediado |
-| **VULN-05** | Utilização de Componentes Vulneráveis e Desatualizados | A06:2021 - Vulnerable & Outdated Components | 7.5 | **Alta** | Remediado |
-| **VULN-06** | CORS Permissivo e Credenciais em Parâmetro de URL | A01:2021 - Broken Access Control | 6.5 | **Média** | Remediado |
-
----
-
-### 2.2 Detalhamento Técnico das Remediações
-
-#### VULN-01: Broken Access Control & IDOR
-- **Mecanismo Original:** Rotas de manipulação e exclusão de chats (`DELETE /chats/<chat_id>`) não validavam o usuário solicitante contra o proprietário do chat no Firebase Realtime Database.
-- **Remediação:** 
-  1. Criação do decorador central `@require_auth` em `backend/security/auth.py` com validação de token via `firebase_admin.auth.verify_id_token`.
-  2. Implementação de checagem obrigatória de permissão em `Firebase.get_chat(user_id, chat_id)`, garantindo retorno `403 Forbidden` quando o `owner_id != uid`.
-  3. Atualização das regras de segurança do Firebase RTDB (`database.rules.json`) restringindo operações estritamente para `auth.uid === $uid`.
-
-#### VULN-02: Debug Mode e Vazamento de Traceback
-- **Mecanismo Original:** Servidor Flask instanciado com `app.run(debug=True)`, provocando vazamento de variáveis de ambiente, paths do container e detalhes de drivers em qualquer exceção 500.
-- **Remediação:** 
-  1. Remoção de `debug=True` no ponto de entrada e substituição por Gunicorn multi-worker em ambiente produtivo.
-  2. Registro de interceptadores centrais `@app.errorhandler` em `backend/endpoints.py` para códigos 400, 401, 403, 404, 405, 413, 500 e exceções genéricas.
-  3. Mascaramento total de detalhes internos em respostas públicas e registro de rastros em logs auditáveis.
-
-#### VULN-03: Injeção de SQL (SQLi)
-- **Mecanismo Original:** A rota `/courses` montava consultas SQLite através de interpolação não tratada: `f"SELECT * FROM courses WHERE name LIKE '%{query}%'"`.
-- **Remediação:** 
-  1. Refatoração completa de `backend/blueprints/courses.py` e `backend/db.py` para adotar consultas preparadas com parâmetros posicionais:
-     ```python
-     cursor.execute("SELECT * FROM courses WHERE name LIKE ? OR category LIKE ?", (f"%{query}%", f"%{query}%"))
-     ```
-  2. O driver do SQLite agora trata caracteres de controle e quebras sintáticas (`' UNION SELECT ... --`) estritamente como literais de string.
-
-#### VULN-04: Credenciais Sensíveis Versionadas
-- **Mecanismo Original:** Arquivo `reddit_key.json` contendo chaves de conta de serviço Firebase estava sob versionamento direto no Git.
-- **Remediação:**
-  1. Exclusão completa do arquivo no repositório (`git rm reddit_key.json`).
-  2. Criação de modelo seguro `reddit_key.example.json` contendo apenas placeholders não funcionais.
-  3. Inclusão de regras restritivas no `.gitignore` (`*reddit_key.json`, `*.env*`, `*.pem`, `*.key`).
-
-#### VULN-05: Dependências Vulneráveis
-- **Mecanismo Original:** `backend/requirements.txt` possuía bibliotecas sem restrição de versão mínima, expondo a aplicação a bugs e CVEs conhecidas.
-- **Remediação:**
-  1. Posições de dependências fixadas com versões estáveis: `firebase-admin>=6.5.0`, `flask>=3.0.0`, `flask-cors>=4.0.0`, `flask-limiter>=3.5.0`, `redis>=5.0.0`, `prometheus-client>=0.20.0`, `pytest>=8.0.0`.
-  2. O pipeline Docker executa instalações limpas com `--no-cache-dir`.
-
-#### VULN-06: Permissividade em CORS e Token via URL
-- **Mecanismo Original:** Rota `GET /users/info` aceitava `?token=<jwt>` na URL (expondo-o em logs de servidores proxy e histórico do navegador) e CORS configurado com wildcard `*`.
-- **Remediação:**
-  1. Configuração de CORS restrito apontando para os domínios homologados da aplicação (`ALLOWED_ORIGINS = "http://localhost:3000,http://127.0.0.1:3000"`).
-  2. Remoção do suporte a tokens em query strings: extração obrigatória via cabeçalho `Authorization: Bearer <token>`.
+### 2.2 Metodologia
+A avaliação seguiu o padrão OWASP Top 10 e OWASP API Security Top 10, dividida em quatro etapas:
+1. **Auditoria Estática (SAST & SCA):** Varredura de código com Bandit, auditoria de segredos com script dedicado no histórico Git e análise de dependências com pip-audit e npm-audit.
+2. **Exploração Dinâmica (DAST / Pentest Manual):** Criação de PoCs automatizadas em Python com dois perfis de teste (Alice e Bob) simulando ataques reais.
+3. **Remediação na Causa Raiz:** Correção de código, alteração de regras de infraestrutura e refatoração arquitetural.
+4. **Verificação Automatizada de Regressão:** Bateria de testes em Pytest e re-execução das PoCs contra a aplicação corrigida.
 
 ---
 
-## 3. Controles Adicionais de Hardening
+## 3. Matriz de Vulnerabilidades
 
-Além da correção pontual das falhas apontadas, foram erguidos múltiplos anéis de segurança:
-
-1. **Rate Limiting Distribuído (Anti-Brute Force / Anti-DoS):**
-   - Implementado via `Flask-Limiter` com backend centralizado no Redis 7.
-   - Algoritmo de identificação inteligente (`get_client_identifier`): prioriza UID autenticado (`g.uid`), recorrendo ao IP real do cliente (`X-Forwarded-For`) ou `remote_addr`.
-   - Limites definidos: `200 per day`, `50 per hour` globais; rotas de autenticação e busca protegidas com quotas mais rigorosas (`10 per minute`).
-2. **Proteção Contra Payloads Excessivos (Memory Exhaustion / DoS):**
-   - Configurado `MAX_CONTENT_LENGTH = 1 * 1024 * 1024` (1MB).
-   - Rejeição imediata com HTTP `413 Request Entity Too Large` para payloads anômalos.
-3. **Cabeçalhos de Segurança HTTP (OWASP Secure Headers):**
-   - Aplicados em duas camadas: via middleware Flask (`backend/middleware/security_headers.py`) e no proxy reverso (`infra/nginx/nginx.conf`).
-   - `Content-Security-Policy: default-src 'self' ...`
-   - `X-Frame-Options: DENY` (Mitigação de Clickjacking)
-   - `X-Content-Type-Options: nosniff` (Prevenção de MIME Sniffing)
-   - `Referrer-Policy: strict-origin-when-cross-origin`
-   - `Permissions-Policy: geolocation=(), camera=(), microphone=()`
+| ID | Classificação OWASP | CVSS v3.1 | Severidade | Impacto no Negócio |
+| :--- | :--- | :---: | :---: | :--- |
+| **VULN-01** | API1:2023 - Broken Object Level Authorization | 9.1 | **Crítica** | Violação de privacidade; exclusão de conversas confidenciais de terceiros. |
+| **VULN-02** | A05:2021 - Security Misconfiguration | 7.5 | **Alta** | Vazamento de arquivos internos e potencial RCE pelo console Werkzeug. |
+| **VULN-03** | A03:2021 - Injection (SQL Injection) | 9.8 | **Crítica** | Extração de dados da base acadêmica e evasão de filtros de catálogo. |
+| **VULN-04** | A07:2021 - Identification & Auth Failures | 8.6 | **Alta** | Comprometimento de credenciais de serviço e abuso de quotas em APIs. |
+| **VULN-05** | A06:2021 - Vulnerable & Outdated Components | 7.5 | **Alta** | Exposição a falhas conhecidas (CVEs) em pacotes desatualizados. |
+| **VULN-06** | A01:2021 - Broken Access Control | 6.5 | **Média** | Roubo de sessão via logs de proxy e requisições cross-origin não autorizadas. |
 
 ---
 
-## 4. Engenharia de Confiabilidade (SRE) e Observabilidade
+## 4. Correções e Causa Raiz
 
-A infraestrutura foi enriquecida com os quatro pilares de confiabilidade do Google SRE:
+### VULN-01: Broken Access Control / IDOR
+- **Causa Raiz:** A rota `DELETE /chats/<chat_id>` e as operações de mensagem não validavam se o `chat_id` pertencia ao usuário autenticado, e as regras do Firebase RTDB estavam ausentes.
+- **Solução Definitiva:**
+  - Implementado o decorador `@require_auth` em `backend/security/auth.py`.
+  - Checagem prévia de propriedade no banco antes de exclusões (`Firebase.get_chat(user_id, chat_id)`).
+  - Regras em `database.rules.json` restringindo leitura e escrita para `auth.uid === $uid`.
 
-1. **Rastreamento Distribuído (Distributed Tracing):**
-   - Middleware `backend/middleware/logging.py` injeta um `X-Request-ID` único em toda requisição caso não fornecido pelo cliente.
-   - Logs no formato estruturado JSON com os campos: `timestamp`, `level`, `request_id`, `method`, `path`, `status_code`, `latency_ms`, `client_ip`, `instance_id`.
-2. **Health Checks e Sondas de Orquestração:**
-   - `/health`: *Liveness Probe* imediata para confirmação de que o processo Python/Gunicorn está responsivo.
-   - `/ready`: *Readiness Probe* profunda que avalia conectividade com SQLite, Redis e Firebase. Retorna 200 (UP) ou 503 (DOWN).
-3. **Métricas Operacionais (Prometheus):**
-   - Endpoint `/metrics` exporta contadores e histogramas:
-     - `http_requests_total`: volume particionado por método, status e endpoint.
-     - `http_request_duration_seconds`: histograma de latência de resposta.
-     - `http_requests_in_flight`: saturação instantânea de concorrência.
-     - `dependency_up`: saúde individual das dependências críticas.
-4. **Governança de SLI, SLO e Error Budget:**
-   - Documentado integralmente em `docs/SRE_OBSERVABILIDADE.md`.
-   - SLO de Disponibilidade: 99.5% de requisições válidas com status < 500 no período móvel de 30 dias.
-   - SLO de Latência: 95% das requisições processadas em menos de 250ms.
-5. **Dashboard de Observabilidade:**
-   - Template JSON completo exportado em `infra/grafana/coursesphere-dashboard.json`, cobrindo métricas de SLO, latência P95, vazão e balanceamento entre réplicas.
+### VULN-02: Modo Debug e Exposição de Informações
+- **Causa Raiz:** Ponto de entrada rodando com `app.run(debug=True)` sem interceptadores globais de erro.
+- **Solução Definitiva:**
+  - Desativação do modo de depuração em produção e adoção do servidor Gunicorn.
+  - Handlers centralizados `@app.errorhandler` para 400, 401, 403, 404, 405, 413, 500 em `backend/endpoints.py`.
+  - Respostas com mensagens genéricas e correlação por `X-Request-ID`.
 
----
+### VULN-03: Injeção de SQL (SQLi)
+- **Causa Raiz:** O arquivo `backend/blueprints/courses.py` concatenava variáveis diretamente na consulta via f-strings: `f"WHERE semester LIKE '%{semester}%'"`.
+- **Solução Definitiva:**
+  - Substituição por consultas parametrizadas com `?` em `courses.py` e `backend/db.py`.
+  - Caracteres maliciosos (`' OR '1'='1`) passam a ser interpretados estritamente como literais de string.
 
-## 5. Alta Disponibilidade e Balanceamento de Carga
+### VULN-04: Credenciais Sensíveis Versionadas
+- **Causa Raiz:** Arquivo `reddit_key.json` commitado no histórico de versões.
+- **Solução Definitiva:**
+  - Remoção do rastreamento do Git (`git rm`).
+  - Criação do modelo público `reddit_key.example.json` sem valores reais.
+  - Regras de bloqueio adicionadas ao `.gitignore` (`*reddit_key.json`, `*.env*`, `*.pem`).
 
-Para garantir a operação contínua sem pontos únicos de falha:
-- **Balanceador de Carga Nginx:** Instanciado na porta 5000 e 8080 distribuindo tráfego para `backend-1:5000` e `backend-2:5000`.
-- **Algoritmo Round-Robin:** Alternância sequencial uniforme comprovada por bateria automatizada de testes (50% / 50% de distribuição).
-- **Failover Transparente:** Diretiva `proxy_next_upstream` encaminha o tráfego instantaneamente para a réplica saudável caso uma instância sofra instabilidade.
+### VULN-05: Dependências Vulneráveis
+- **Causa Raiz:** `backend/requirements.txt` sem fixação de versões mínimas.
+- **Solução Definitiva:**
+  - Dependências pinadas com versões seguras e auditadas via pip-audit e npm-audit.
+  - Pipeline Docker construído com instalações limpas (`--no-cache-dir`).
 
----
-
-## 6. Diferenciais Avançados de Confiabilidade e Postura de Segurança
-
-Além do atendimento aos requisitos básicos do edital, foram incorporados os diferenciais de nível avançado:
-1. **Threat Modeling Estruturado (STRIDE & DFD):**
-   - Análise metodológica documentada em `docs/threat-model.md` com diagramas de fluxo de dados Nível 0 e Nível 1.
-   - Mapeamento das 6 categorias STRIDE contra as fronteiras de confiança da aplicação e cálculo do risco residual.
-2. **Pipeline Automatizado de CI/CD (GitHub Actions):**
-   - Configurado em `.github/workflows/security.yml`.
-   - Pipeline contínua executando SAST (Bandit), verificação de dependências (pip-audit) e a suíte completa de testes automatizados com Redis antes de qualquer merge.
-3. **Template de Provisionamento Grafana:**
-   - Arquivo `infra/grafana/coursesphere-dashboard.json` pronto para importação direta no Grafana.
-4. **Ambiente Isolado e Sem Dependência de Terceiros:**
-   - 100% conteinerizado localmente com emuladores de Firebase e Redis, garantindo proteção contra vazamento de dados em serviços de nuvem.
+### VULN-06: Permissividade em CORS e Token na URL
+- **Causa Raiz:** `CORS(app)` global aberto (`*`) e rota `GET /users/info` aceitando token via parâmetro de busca na URL (`?id_token=...`).
+- **Solução Definitiva:**
+  - CORS configurado com lista explícita de origens permitidas (`ALLOWED_ORIGINS`).
+  - Remoção de suporte a token na query string: credenciais aceitas apenas no cabeçalho `Authorization: Bearer`.
 
 ---
 
-## 7. Procedimentos de Reprodução e Auditoria
+## 5. Hardening
 
-Consulte o arquivo `README.md` na raiz do projeto para o passo a passo completo de inicialização dos contêiners, execução das Provas de Conceito e bateria de testes automatizados.
+Além das correções, foram adicionados controles de defesa em profundidade:
+1. **Rate Limiting Distribuído:** Integrado ao Redis 7 via `Flask-Limiter` com chaveamento contextual (`g.uid` -> `X-Forwarded-For` -> `remote_addr`). Limitações globais e cotas restritas para criação de contas (10 req/min).
+2. **Limite de Tamanho de Requisições:** Bloqueio imediato com HTTP 413 para payloads acima de 1MB (`MAX_CONTENT_LENGTH`).
+3. **Cabeçalhos OWASP:** Injeção sistemática de `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` e `Referrer-Policy`.
+4. **Validação de Schemas:** Validação de formato de e-mail, complexidade de senhas e sanitização de payloads JSON em `backend/security/validation.py`.
+
+---
+
+## 6. Confiabilidade e Observabilidade (SRE)
+
+### 6.1 Indicadores de Nível de Serviço (SLIs) e Objetivos (SLOs)
+- **SLI 1 — Disponibilidade da API:** Proporção de requisições concluídas com código HTTP < 500 sobre o total de requisições válidas.
+  - **SLO Proposto:** $\ge 99.5\%$ no período de 30 dias.
+  - **Error Budget:** $0.5\%$ de indisponibilidade permitida (~3,6 horas por mês).
+- **SLI 2 — Latência de Requisições:** Tempo de resposta do servidor medido no Load Balancer.
+  - **SLO Proposto:** $95\%$ das requisições processadas em $\le 250\text{ms}$ (P95).
+  - **Error Budget:** $5\%$ de requisições excedentes.
+
+### 6.2 Sondas e Métricas
+- `GET /health`: Sonda de vivacidade (*liveness*) para validação do processo da aplicação.
+- `GET /ready`: Sonda de prontidão (*readiness*) profunda, testando conexões com SQLite, Redis e Firebase.
+- `GET /metrics`: Exportador Prometheus nativo (`http_requests_total`, `http_request_duration_seconds`, `http_requests_in_flight`, `dependency_up`).
+- **Tracing Distribuído:** Cabeçalho `X-Request-ID` propagado entre proxy, aplicação e logs estruturados em JSON.
+- **Dashboard Grafana:** Painel pronto para importação disponibilizado em `infra/grafana/coursesphere-dashboard.json`.
+
+---
+
+## 7. Riscos de Disponibilidade e Resiliência
+
+### 7.1 Riscos Arquiteturais Identificados
+1. **Ponto Único de Falha (SPOF):** Originalmente, a aplicação rodava em uma única instância. Falhas de processo ou reinicializações derrubavam 100% do serviço.
+2. **Exaustão de Memória por DoS:** Ausência de limite de payload permitia requisições gigantescas, consumindo recursos do worker.
+3. **Saturação de Conexões de Banco:** Conexões SQLite concorrentes não controladas podiam gerar travamentos (*database is locked*).
+
+### 7.2 Recomendações e Mitigações Implementadas
+- **Cluster com Load Balancer:** Duas réplicas ativas (`backend-1` e `backend-2`) atrás do Nginx com balanceamento round-robin e failover automático (`proxy_next_upstream`).
+- **Controle de Saturação:** Rate limiting distribuído no Redis e limite de 1MB por payload.
+- **Desacoplamento de Estado:** Sessões stateless via JWT; tokens e limites compartilhados sem dependência de memória local da instância.
+
+---
+
+## 8. Recomendações Priorizadas
+
+| Prioridade | Ação | Justificativa | Status |
+| :---: | :--- | :--- | :---: |
+| **P1 (Imediata)** | Parametrizar consultas SQL e aplicar controle de acesso em chats | Elimina risco de exfiltração de dados e violação de privacidade de estudantes. | Concluído |
+| **P1 (Imediata)** | Desabilitar `debug=True` e expurgar chaves do repositório | Impede execução remota de código (RCE) e uso não autorizado de credenciais. | Concluído |
+| **P2 (Curto Prazo)** | Implementar Rate Limiting distribuído e limite de payload | Protege a infraestrutura contra ataques de negação de serviço e força bruta. | Concluído |
+| **P2 (Curto Prazo)** | Instrumentar sondas de health check e métricas Prometheus | Garante visibilidade da saúde dos nós e acionamento de auto-healing pelo orquestrador. | Concluído |
+| **P3 (Médio Prazo)** | Integrar análise estática contínua na esteira de CI/CD | Previne que novos commits reintroduzam falhas ou dependências vulneráveis. | Concluído |
+
+---
+
+## 9. Evidências e Auditoria
+
+Todas as evidências brutas e relatórios complementares estão disponíveis no repositório:
+- **Testes de Regressão Automatizados:** Executáveis via `docker exec coursesphere-backend-1 pytest tests/ -v` (22/22 aprovados).
+- **Relatório de Re-teste Ofensivo:** [`docs/evidencias/RELATORIO_EXECUCAO_RETESTE.md`](evidencias/RELATORIO_EXECUCAO_RETESTE.md).
+- **Evidência de Balanceamento Nginx:** [`docs/evidencias/balanceamento/nginx-round-robin.log`](evidencias/balanceamento/nginx-round-robin.log).
+- **Varredura SAST (Bandit):** [`docs/evidencias/sast/bandit.json`](evidencias/sast/bandit.json).
+- **Auditoria de Dependências (SCA):** [`docs/evidencias/sca/pip-audit.json`](evidencias/sca/pip-audit.json) e [`docs/evidencias/sca/npm-audit.json`](evidencias/sca/npm-audit.json).
+- **Modelagem de Ameaças STRIDE & DFD:** [`docs/threat-model.md`](threat-model.md).
