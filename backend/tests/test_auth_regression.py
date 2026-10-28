@@ -69,3 +69,4 @@ def test_authorized_user_can_save_and_manage_own_chat(client, mock_auth, auth_to
     assert res.get_json()["message"] == "Messages saved successfully"
     assert len(saved_payloads) == 1
     assert saved_payloads[0][0] == auth_tokens["alice"]["uid"]
+

@@ -7,3 +7,4 @@ def success_response(data, code=200):
 def error_response(message, code=400):
     """Formats a standardized JSON error response."""
     return jsonify({"error": message}), code
+

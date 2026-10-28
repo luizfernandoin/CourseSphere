@@ -70,3 +70,4 @@ def mock_auth(monkeypatch, auth_tokens):
         raise ValueError("Invalid ID token")
 
     monkeypatch.setattr(Firebase, "verify_id_token", fake_verify_id_token)
+

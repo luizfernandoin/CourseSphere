@@ -44,3 +44,4 @@ def test_legitimate_course_retrieval_by_id(client):
         assert data["id"] == 1
     else:
         assert res.status_code == 404
+

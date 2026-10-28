@@ -58,3 +58,4 @@ def test_cors_policy_rejects_untrusted_origins(client):
     # Untrusted origin should NOT be reflected in Access-Control-Allow-Origin
     assert allow_origin != "*"
     assert allow_origin != "https://evil-attacker.site"
+
