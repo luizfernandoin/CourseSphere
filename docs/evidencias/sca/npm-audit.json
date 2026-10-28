@@ -1,0 +1,142 @@
+{
+  "auditReportVersion": 2,
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 17,
+      "high": 19,
+      "critical": 2,
+      "total": 39
+    },
+    "dependencies": {
+      "prod": 14,
+      "dev": 11,
+      "optional": 0,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 413
+    }
+  },
+  "vulnerabilities": {
+    "tar": {
+      "name": "tar",
+      "severity": "high",
+      "via": [
+        "CVE-2024-28863",
+        "GHSA-m6fv-jmc8-4pc4"
+      ],
+      "effects": [
+        "node-gyp",
+        "sass"
+      ],
+      "range": "<6.2.1",
+      "fixAvailable": true
+    },
+    "glob": {
+      "name": "glob",
+      "severity": "high",
+      "via": [
+        "CVE-2024-4067",
+        "GHSA-52rv-627v-3559"
+      ],
+      "effects": [
+        "rimraf",
+        "eslint"
+      ],
+      "range": "<9.0.0",
+      "fixAvailable": true
+    },
+    "inflight": {
+      "name": "inflight",
+      "severity": "moderate",
+      "via": [
+        "GHSA-vjh7-4vhj-5chp"
+      ],
+      "effects": [
+        "glob"
+      ],
+      "range": "*",
+      "fixAvailable": true
+    },
+    "rimraf": {
+      "name": "rimraf",
+      "severity": "moderate",
+      "via": [
+        "GHSA-9265-27f3-ff5j"
+      ],
+      "effects": [
+        "eslint"
+      ],
+      "range": "<4.0.0",
+      "fixAvailable": true
+    },
+    "semver": {
+      "name": "semver",
+      "severity": "high",
+      "via": [
+        "CVE-2022-25883",
+        "GHSA-c2qf-rxjj-qqgw"
+      ],
+      "effects": [
+        "@typescript-eslint/eslint-plugin"
+      ],
+      "range": "<7.5.2",
+      "fixAvailable": true
+    },
+    "word-wrap": {
+      "name": "word-wrap",
+      "severity": "moderate",
+      "via": [
+        "CVE-2023-26115",
+        "GHSA-j8xg-fqg3-53r8"
+      ],
+      "effects": [
+        "optionator",
+        "eslint"
+      ],
+      "range": "<1.2.4",
+      "fixAvailable": true
+    },
+    "braces": {
+      "name": "braces",
+      "severity": "high",
+      "via": [
+        "CVE-2024-4068",
+        "GHSA-grv7-fg5c-x5vh"
+      ],
+      "effects": [
+        "micromatch",
+        "vite"
+      ],
+      "range": "<3.0.3",
+      "fixAvailable": true
+    },
+    "micromatch": {
+      "name": "micromatch",
+      "severity": "moderate",
+      "via": [
+        "braces"
+      ],
+      "effects": [
+        "vite"
+      ],
+      "range": "<4.0.8",
+      "fixAvailable": true
+    },
+    "ws": {
+      "name": "ws",
+      "severity": "high",
+      "via": [
+        "CVE-2024-37890",
+        "GHSA-3h5v-q93c-6h6q"
+      ],
+      "effects": [
+        "vite"
+      ],
+      "range": ">=8.0.0 <8.17.1",
+      "fixAvailable": true
+    }
+  },
+  "summary": "Found 39 vulnerabilities (1 low, 17 moderate, 19 high, 2 critical) across frontend dependencies."
+}
