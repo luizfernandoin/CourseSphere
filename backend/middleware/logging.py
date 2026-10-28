@@ -32,10 +32,11 @@ def register_structured_logging(app):
 
     @app.after_request
     def after_request_logging(response):
-        # Attach correlation ID to response headers
+        # Attach correlation ID and instance ID to response headers
         req_id = getattr(g, "request_id", None)
         if req_id:
             response.headers["X-Request-ID"] = req_id
+        response.headers["X-Instance-ID"] = INSTANCE_ID
 
         # Calculate response latency in milliseconds
         start_time = getattr(g, "request_start_time", None)

@@ -50,6 +50,7 @@ yarn-error.log*
 .coverage
 htmlcov/
 *.log
+!docs/evidencias/**
 
 # Internal Planning & Challenge reference docs (not part of delivery)
 Desafio Técnico*

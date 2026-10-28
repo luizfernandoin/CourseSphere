@@ -1,0 +1,53 @@
+Iniciando envio de 40 requisicoes consecutivas ao Load Balancer...
+Req #01 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency: 106.41ms | ReqID: 924bcdda-033c-4d5b-a20c-9100edf55d7e
+Req #02 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  84.50ms | ReqID: 3994d1a1-f950-431f-a6ee-867037c644a6
+Req #03 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  32.15ms | ReqID: 1ac64bdf-188f-4781-b354-c25a1c0485c0
+Req #04 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  17.21ms | ReqID: f128438d-213d-45a1-9ef1-6ae9e83eecce
+Req #05 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  34.37ms | ReqID: 737ff793-11c7-4c3c-88bf-ae81e10520d8
+Req #06 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  21.96ms | ReqID: bc1ea998-d0a5-4334-84f3-09182ab91a13
+Req #07 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  22.78ms | ReqID: fa1677a0-c459-4364-8e78-2912d3d7b071
+Req #08 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  22.57ms | ReqID: 50cb45d3-3e70-4e82-bcb8-c9e25df16a95
+Req #09 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  26.36ms | ReqID: ca112761-0171-4c4e-8890-01cae9cfef22
+Req #10 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  17.22ms | ReqID: 6e742898-fb35-4f8d-b314-e5c10bde3927
+Req #11 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  22.22ms | ReqID: 8f1aec48-de85-433c-9ef7-093026618c15
+Req #12 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  26.86ms | ReqID: 6ea90bc5-cdfc-4678-aa71-3ee7c01af88c
+Req #13 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  23.59ms | ReqID: 2d9649cd-5c7f-4c9e-81c2-c60e3e23e18f
+Req #14 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  86.39ms | ReqID: 2d4cee34-5837-4e85-8c99-6015c263e7d2
+Req #15 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  29.92ms | ReqID: b8c7c322-866c-408d-871c-92b992173bee
+Req #16 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  15.34ms | ReqID: 75c69db8-ae09-4d8b-87e4-f0d7d10fe6ce
+Req #17 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  20.15ms | ReqID: 5aa1ec45-74d0-4b0a-bcd0-3d5c6f632325
+Req #18 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  22.21ms | ReqID: b6601327-8814-4991-b19c-c997a1d5563b
+Req #19 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  22.03ms | ReqID: b9523ad2-e1c2-414c-8056-eb202a0e31a7
+Req #20 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  54.11ms | ReqID: e1c41435-ed15-48c2-80aa-d8f48ace6372
+Req #21 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  16.50ms | ReqID: 42151bec-a761-43e8-b115-bafa955cccfb
+Req #22 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  30.30ms | ReqID: 4cf85635-11dc-4f8e-ade8-2d327187cf82
+Req #23 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  17.28ms | ReqID: 1777c853-e1f5-4626-bcd1-ff04c44ab7b9
+Req #24 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  30.71ms | ReqID: 95ab932e-505d-4fb4-8a36-faff96eca66e
+Req #25 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  16.25ms | ReqID: b383bad8-9ce3-41b9-a918-48c87f386a9c
+Req #26 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  15.47ms | ReqID: d2249266-fd68-4707-a668-2dfa10fddab2
+Req #27 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  16.70ms | ReqID: f6b3be60-99b9-41bb-96b9-7a2472dcab84
+Req #28 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  15.65ms | ReqID: 68a2c91b-b47d-43b7-9081-6972d7feaefd
+Req #29 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  17.70ms | ReqID: 28b2ac1d-96bf-4392-89bb-1443428fc982
+Req #30 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  20.49ms | ReqID: ab363c28-9dfe-4b16-bd85-5edc1d5874d3
+Req #31 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  77.22ms | ReqID: 7487f53e-8081-45f2-ac43-7f018a4ea8db
+Req #32 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  17.73ms | ReqID: ef73c4f7-d771-433f-8da8-591cbd4b5dd9
+Req #33 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  25.47ms | ReqID: 8040b564-99fc-4307-8816-085913c72e77
+Req #34 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  24.52ms | ReqID: cc56a1a1-2ae6-4406-a396-cf305bdf0250
+Req #35 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  28.26ms | ReqID: 47726502-0f9b-4da7-8604-758e7138aa82
+Req #36 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  27.09ms | ReqID: 5e3c920c-a99e-46df-b66a-fa56d7719d43
+Req #37 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:  17.29ms | ReqID: d23ef0c6-38cf-424e-aba8-a9862ffa6829
+Req #38 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  25.26ms | ReqID: c85e4824-f171-4826-a5fc-ea8a1eff8857
+Req #39 | Status: 200 | Instance: backend-1  | Upstream: 172.19.0.5:5000        | Latency:   7.19ms | ReqID: b1617efb-449f-4ac6-8595-b65310634b94
+Req #40 | Status: 200 | Instance: backend-2  | Upstream: 172.19.0.4:5000        | Latency:  20.42ms | ReqID: baeaa09a-359e-452e-9ed7-d9390e19e948
+----------------------------------------------------------------------
+RELATORIO CONSOLIDADO DE BALANCEAMENTO:
+  - Requisicoes Enviadas:  40
+  - Requisicoes Bem-Sucedidas (200 OK): 40/40 (100.0%)
+  - Latencia Media:        29.40ms
+  - Distribuicao por Instancia:
+      * backend-1   : 20 requisicoes ( 50.0%)
+      * backend-2   : 20 requisicoes ( 50.0%)
+  - Distribuicao por Upstream Address:
+      * 172.19.0.4:5000       : 20 requisicoes ( 50.0%)
+      * 172.19.0.5:5000       : 20 requisicoes ( 50.0%)
+  - Alternancia entre Replicas: 39/39 transicoes (100.0%)

@@ -25,6 +25,23 @@ from backend.firebase import Firebase
 TOKENS_FILE = PROJECT_ROOT / "scripts" / "pocs" / "test_tokens.json"
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    """Resets rate limiter storage before and after each test to prevent cross-test interference."""
+    limiters = app.extensions.get("limiter", set())
+    for lim in limiters:
+        try:
+            lim._storage.reset()
+        except Exception:
+            pass
+    yield
+    for lim in limiters:
+        try:
+            lim._storage.reset()
+        except Exception:
+            pass
+
+
 @pytest.fixture
 def client():
     """Provides a Flask test client configured for testing."""
@@ -70,4 +87,3 @@ def mock_auth(monkeypatch, auth_tokens):
         raise ValueError("Invalid ID token")
 
     monkeypatch.setattr(Firebase, "verify_id_token", fake_verify_id_token)
-
