@@ -26,13 +26,11 @@ services:
       timeout: 3s
       retries: 5
 
-  backend:
+  backend-1:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: coursesphere-backend
-    ports:
-      - "5000:5000"
+    container_name: coursesphere-backend-1
     depends_on:
       - firebase-emulator
       - redis
@@ -47,6 +45,39 @@ services:
     networks:
       - coursesphere-net
 
+  backend-2:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: coursesphere-backend-2
+    depends_on:
+      - firebase-emulator
+      - redis
+    environment:
+      - PORT=5000
+      - INSTANCE_ID=backend-2
+      - OPENAI_OFFLINE_MOCK=true
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
+      - FIREBASE_DATABASE_EMULATOR_HOST=firebase-emulator:9000
+      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173
+    networks:
+      - coursesphere-net
+
+  load-balancer:
+    build:
+      context: ./infra/nginx
+      dockerfile: Dockerfile
+    container_name: coursesphere-load-balancer
+    ports:
+      - "5000:80"   # Proxies directly to round-robin cluster
+      - "8080:80"   # Standard reverse proxy port
+    depends_on:
+      - backend-1
+      - backend-2
+    networks:
+      - coursesphere-net
+
   frontend:
     build:
       context: ./frontend
@@ -55,7 +86,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - backend
+      - load-balancer
     networks:
       - coursesphere-net
 
